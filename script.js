@@ -12,6 +12,7 @@ const breedInput = document.getElementById("breedInput");
 const jogadorArea = document.querySelector(".jogador-area");
 
 const API_BASE = "http://10.106.208.7:3000/api";
+const API_KEY = "minha_chave_super_secreta";
 
 
 //===========================
@@ -29,7 +30,11 @@ async function fetchFromApi(endpoint){
         const url = `${API_BASE}${endpoint}`;
         console.log("Requisição:", url);
 
-        const response = await fetch(url);
+        const response = await fetch(url,{
+            headers:{
+                "x-api-key": API_KEY
+            }
+        });
 
         if(!response.ok){
             throw new Error("Erro na requisição");
@@ -45,8 +50,8 @@ async function fetchFromApi(endpoint){
 
             //remover "_" do nome e formatar texto
             let formattedMessage = data.message
-                .replace(/_/g," ")  // remove underscore
-                .replace(/\n/g,"<br>"); // quebra de linha
+                .replace(/_/g," ")
+                .replace(/\n/g,"<br>");
 
             //mostrar dados
             breedName.innerHTML = formattedMessage;
@@ -98,7 +103,6 @@ function getBreedJogador(){
         return;
     }
 
-    //trocar espaço por "_" para enviar para API
     jogador = jogador.replace(/\s+/g,"_");
 
     fetchFromApi(`/jogadores/${jogador}`);
