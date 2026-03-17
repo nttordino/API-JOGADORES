@@ -12,7 +12,7 @@ const breedInput = document.getElementById("breedInput");
 const jogadorArea = document.querySelector(".jogador-area");
 
 const API_BASE = "http://10.106.208.7:3000/api";
-const API_KEY = "minha_chave_super_secreta";
+const API_KEY = "DSI3_SESI";
 
 
 //===========================
@@ -31,13 +31,22 @@ async function fetchFromApi(endpoint){
         console.log("Requisição:", url);
 
         const response = await fetch(url,{
+            method: "GET",
             headers:{
-                "x-api-key": API_KEY
+                "x-api-key": API_KEY,
+                "Content-Type": "application/json"
             }
         });
 
+        // 👇 DEBUG IMPORTANTE
+        console.log("Status:", response.status);
+
         if(!response.ok){
-            throw new Error("Erro na requisição");
+
+            const erro = await response.json().catch(() => null);
+            console.log("Erro detalhado:", erro);
+
+            throw new Error(`Erro ${response.status}`);
         }
 
         const data = await response.json();
@@ -45,20 +54,17 @@ async function fetchFromApi(endpoint){
 
         if(data.status === "success"){
 
-            //mostrar imagem
             jogadorImage.src = data.foto || "";
 
-            //remover "_" do nome e formatar texto
             let formattedMessage = data.message
                 .replace(/_/g," ")
                 .replace(/\n/g,"<br>");
 
-            //mostrar dados
             breedName.innerHTML = formattedMessage;
 
         } else {
 
-            breedName.textContent = "Jogador não encontrado";
+            breedName.textContent = data.message || "Jogador não encontrado";
             jogadorImage.src = "";
 
         }
