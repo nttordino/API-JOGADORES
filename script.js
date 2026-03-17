@@ -21,69 +21,90 @@ const API_KEY = "DSI3_SESI";
 
 async function fetchFromApi(endpoint){
 
-    if(!jogadorArea) return;
-
-    jogadorArea.classList.add("loading");
-
-    try {
-
-        const url = `${API_BASE}${endpoint}`;
-        console.log("Requisição:", url);
-
-        const response = await fetch(url,{
+    if (endpoint === "/verificar"){
+        const url = `http://10.106.208.7:3000${endpoint}`
+        const response = await fetch(url, ({
             method: "GET",
             headers:{
                 "x-api-key": API_KEY,
                 "Content-Type": "application/json"
             }
-        });
+        }))
+        const data = await response.json()
+        console.log(data.message)
 
-        // 👇 DEBUG IMPORTANTE
-        console.log("Status:", response.status);
+    } else{
 
-        if(!response.ok){
+        if(!jogadorArea) return;
+    
+        jogadorArea.classList.add("loading");
+    
+        try {
+    
+            const url = `${API_BASE}${endpoint}`;
+            // console.log("Requisição:", url);
+    
+            const response = await fetch(url,{
+                method: "GET",
+                headers:{
+                    "x-api-key": API_KEY,
+                    "Content-Type": "application/json"
+                }
+            });
+    
+            // 👇 DEBUG IMPORTANTE
+            // console.log("Status:", response.status);
+    
+            if(!response.ok){
+    
+                const erro = await response.json().catch(() => null);
+                console.log("Erro detalhado:", erro);
+    
+                throw new Error(`Erro ${response.status}`);
+            }
+    
+            const data = await response.json();
+            // console.log("Resposta:", data);
+    
+            if(data.status === "success"){
+    
+                jogadorImage.src = data.foto || "";
+    
+                let formattedMessage = data.message
+                    .replace(/_/g," ")
+                    .replace(/\n/g,"<br>");
+    
+                breedName.innerHTML = formattedMessage;
+    
+            } else {
+    
+                breedName.textContent = data.message || "Jogador não encontrado";
+                jogadorImage.src = "";
+    
+            }
+    
+        } catch (error) {
 
-            const erro = await response.json().catch(() => null);
-            console.log("Erro detalhado:", erro);
+            console.error("Erro:", error);
 
-            throw new Error(`Erro ${response.status}`);
+            if (error.message === "Failed to fetch") {
+                breedName.textContent = "Erro de conexão com o servidor";
+                jogadorImage.src = "";
+            } else {
+                breedName.textContent = "Erro ao carregar jogador";
+                jogadorImage.src = "";
+            }
+
+        } finally {
+    
+            jogadorArea.classList.remove("loading");
+    
         }
-
-        const data = await response.json();
-        console.log("Resposta:", data);
-
-        if(data.status === "success"){
-
-            jogadorImage.src = data.foto || "";
-
-            let formattedMessage = data.message
-                .replace(/_/g," ")
-                .replace(/\n/g,"<br>");
-
-            breedName.innerHTML = formattedMessage;
-
-        } else {
-
-            breedName.textContent = data.message || "Jogador não encontrado";
-            jogadorImage.src = "";
-
-        }
-
-    } catch(error){
-
-        console.error("Erro:", error);
-
-        breedName.textContent = "Erro ao carregar jogador";
-        jogadorImage.src = "";
-
-    } finally {
-
-        jogadorArea.classList.remove("loading");
-
     }
 
 }
 
+fetchFromApi("/verificar")
 
 //======================
 // CARREGAR AO ABRIR
